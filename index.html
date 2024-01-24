@@ -36,7 +36,7 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        fetch('/posts/posts.json') // Assuming a JSON file containing a list of post filenames
+        fetch('journal/posts/posts.json') // Assuming a JSON file containing a list of post filenames
             .then(response => response.json())
             .then(posts => {
                 const postList = document.getElementById('postList');
