@@ -9,18 +9,21 @@
             font-family: Arial, sans-serif;
             margin: 20px;
         }
+
         ul {
             list-style-type: none;
             padding: 0;
         }
+
         li {
             margin-bottom: 10px;
         }
+
         a {
             text-decoration: none;
-            color: #0366d6;
-            cursor: pointer;
+            color: #0366d6; /* GitHub link color */
         }
+
         a:hover {
             text-decoration: underline;
         }
@@ -29,51 +32,49 @@
 <body>
 
 <h1>Blog Posts</h1>
-
 <ul id="postList"></ul>
 
 <script>
-    // Function to fetch and display the content of a selected post
-    function loadPost(postPath) {
-        fetch(postPath)
-            .then(response => response.text())
-            .then(data => {
-                // Assuming you have a div with the id 'postContent' to display the content
-                document.getElementById('postContent').innerHTML = data;
-            })
-            .catch(error => console.error('Error loading post:', error));
-    }
-
-    // Function to dynamically create list items with links to posts
-    function displayPosts() {
-        const postList = document.getElementById('postList');
-
-        // Fetch the list of .md files directly from GitHub using the Repository Contents API
-        fetch('https://api.github.com/repos/luanmagioli/journal/posts')
+    document.addEventListener('DOMContentLoaded', function () {
+        fetch('/posts/posts.json') // Assuming a JSON file containing a list of post filenames
             .then(response => response.json())
-            .then(data => {
-                data.forEach(post => {
-                    if (post.name.endsWith('.md')) {
-                        const listItem = document.createElement('li');
-                        const link = document.createElement('a');
-                        link.textContent = post.name;
-                        link.onclick = function() {
-                            // Load the content of the selected post when clicked
-                            loadPost(post.download_url);
-                        };
-                        listItem.appendChild(link);
-                        postList.appendChild(listItem);
+            .then(posts => {
+                const postList = document.getElementById('postList');
+
+                posts.forEach(post => {
+                    const listItem = document.createElement('li');
+                    const link = document.createElement('a');
+                    link.href = `/post.html#${post}`; // Assuming post.html uses anchor tags to distinguish between posts
+                    link.textContent = post.replace(/\.md$/, ''); // Display post name without the .md extension
+                    listItem.appendChild(link);
+                    postList.appendChild(listItem);
+                });
+
+                // Handle post click events
+                postList.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    if (event.target.tagName === 'A') {
+                        const postName = event.target.hash.substring(1); // Extract post name from the href
+                        loadPostContent(postName);
                     }
                 });
             })
-            .catch(error => console.error('Error fetching post list:', error));
-    }
+            .catch(error => console.error('Error fetching posts:', error));
 
-    // Call the function to display posts
-    displayPosts();
+        function loadPostContent(postName) {
+            // Load content from the selected post
+            fetch(`/posts/${postName}.md`)
+                .then(response => response.text())
+                .then(markdownContent => {
+                    // Display the content or use a Markdown parser to render it
+                    console.log(markdownContent);
+                    // You can now update the post.html content with the fetched markdownContent
+                    // For simplicity, we're just logging it to the console here
+                })
+                .catch(error => console.error('Error fetching post content:', error));
+        }
+    });
 </script>
-
-<div id="postContent"></div>
 
 </body>
 </html>
